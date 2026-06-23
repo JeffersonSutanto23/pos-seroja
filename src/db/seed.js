@@ -11,6 +11,19 @@ const insertPerm = db.prepare('INSERT OR IGNORE INTO permissions (key, label, gr
 ALL_PERMISSIONS.forEach(p => insertPerm.run(p.key, p.label, p.group));
 
 // --- Roles ----------------------------------------------------------------
+// Rename roles from earlier seed runs (Super Admin -> Manager, Kasir -> Admin)
+// without touching their permissions or the users already assigned to them.
+function renameRole(oldName, newName) {
+  const old = db.prepare('SELECT * FROM roles WHERE name = ?').get(oldName);
+  const existing = db.prepare('SELECT * FROM roles WHERE name = ?').get(newName);
+  if (old && !existing) {
+    db.prepare('UPDATE roles SET name = ? WHERE id = ?').run(newName, old.id);
+    console.log(`Role renamed: ${oldName} -> ${newName}`);
+  }
+}
+renameRole('Super Admin', 'Manager');
+renameRole('Kasir', 'Admin');
+
 function ensureRole(name, description, isSystem, permissionKeys) {
   let role = db.prepare('SELECT * FROM roles WHERE name = ?').get(name);
   if (!role) {
@@ -27,14 +40,14 @@ function ensureRole(name, description, isSystem, permissionKeys) {
 const allKeys = ALL_PERMISSIONS.map(p => p.key);
 const kasirKeys = ['dashboard.view', 'pos.access', 'inventory.view', 'debts.view', 'debts.manage', 'customers.manage'];
 
-const superAdminRoleId = ensureRole('Super Admin', 'Akses penuh ke seluruh sistem.', 1, allKeys);
-ensureRole('Kasir', 'Akses kasir harian: POS, lihat stok, dan piutang.', 1, kasirKeys);
+const superAdminRoleId = ensureRole('Manager', 'Akses penuh ke seluruh sistem.', 1, allKeys);
+ensureRole('Admin', 'Akses kasir harian: POS, lihat stok, dan piutang.', 1, kasirKeys);
 
 // --- Users ------------------------------------------------------------
 // Migrate legacy `role` text column (admin/kasir) to role_id if present.
 const userColumns = db.prepare("PRAGMA table_info(users)").all().map(c => c.name);
 if (userColumns.includes('role')) {
-  const kasirRole = db.prepare('SELECT id FROM roles WHERE name = ?').get('Kasir');
+  const kasirRole = db.prepare('SELECT id FROM roles WHERE name = ?').get('Admin');
   const legacyUsers = db.prepare('SELECT id, role FROM users WHERE role_id IS NULL').all();
   legacyUsers.forEach(u => {
     const roleId = u.role === 'admin' ? superAdminRoleId : kasirRole.id;
@@ -46,7 +59,7 @@ const userCount = db.prepare('SELECT COUNT(*) c FROM users').get().c;
 if (userCount === 0) {
   db.prepare('INSERT INTO users (username, password, full_name, role_id) VALUES (?,?,?,?)')
     .run('admin', hash('admin123'), 'Administrator', superAdminRoleId);
-  const kasirRoleId = db.prepare('SELECT id FROM roles WHERE name = ?').get('Kasir').id;
+  const kasirRoleId = db.prepare('SELECT id FROM roles WHERE name = ?').get('Admin').id;
   db.prepare('INSERT INTO users (username, password, full_name, role_id) VALUES (?,?,?,?)')
     .run('kasir', hash('kasir123'), 'Kasir Toko', kasirRoleId);
   console.log('Users seeded: admin/admin123, kasir/kasir123');
