@@ -21,9 +21,57 @@ router.get('/', (req, res) => {
     ORDER BY s.id DESC LIMIT 8
   `).all();
 
+  // --- Grafik penjualan bulanan (filter per tahun) -----------------------
+  const availableYears = db.prepare(`SELECT DISTINCT strftime('%Y', sale_date) y FROM sales ORDER BY y DESC`).all().map(r => r.y);
+  const currentYear = String(dayjs().year());
+  if (!availableYears.includes(currentYear)) availableYears.unshift(currentYear);
+  const selectedYear = availableYears.includes(req.query.year) ? req.query.year : currentYear;
+
+  const monthlyRows = db.prepare(`
+    SELECT strftime('%m', sale_date) m, COALESCE(SUM(total),0) t
+    FROM sales WHERE strftime('%Y', sale_date) = ? GROUP BY m
+  `).all(selectedYear);
+  const monthlySales = Array.from({ length: 12 }, (_, i) => {
+    const row = monthlyRows.find(r => r.m === String(i + 1).padStart(2, '0'));
+    return row ? row.t : 0;
+  });
+
+  // --- Produk paling populer & tidak populer ------------------------------
+  const topProducts = db.prepare(`
+    SELECT p.name, p.unit, SUM(si.qty) as qty_sold
+    FROM sale_items si JOIN products p ON p.id = si.product_id
+    GROUP BY si.product_id ORDER BY qty_sold DESC LIMIT 5
+  `).all();
+  const bottomProducts = db.prepare(`
+    SELECT p.name, p.unit, COALESCE(SUM(si.qty), 0) as qty_sold
+    FROM products p LEFT JOIN sale_items si ON si.product_id = p.id
+    WHERE p.is_active = 1
+    GROUP BY p.id ORDER BY qty_sold ASC LIMIT 5
+  `).all();
+
+  // --- Notifikasi: jatuh tempo piutang (2 bulan) & hutang (per supplier) -
+  const receivableDueDate = dayjs().subtract(2, 'month').format('YYYY-MM-DD');
+  const overdueReceivables = db.prepare(`
+    SELECT s.*, c.name as customer_name FROM sales s
+    LEFT JOIN customers c ON c.id = s.customer_id
+    WHERE s.status = 'belum_lunas' AND s.sale_date <= ?
+    ORDER BY s.sale_date ASC
+  `).all(receivableDueDate);
+
+  const overduePayables = db.prepare(`
+    SELECT p.*, s.name as supplier_name, s.due_days
+    FROM purchases p JOIN suppliers s ON s.id = p.supplier_id
+    WHERE p.status = 'belum_lunas'
+      AND date(p.purchase_date, '+' || s.due_days || ' days') <= date('now')
+    ORDER BY p.purchase_date ASC
+  `).all();
+
   res.render('dashboard', {
     title: 'Dashboard',
     todaySales, monthSales, monthPurchases, receivables, payables, lowStock, recentSales, rupiah,
+    availableYears, selectedYear, monthlySales,
+    topProducts, bottomProducts,
+    overdueReceivables, overduePayables, dateID: require('../utils/format').dateID,
   });
 });
 

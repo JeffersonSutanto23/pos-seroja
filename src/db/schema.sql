@@ -69,6 +69,7 @@ CREATE TABLE IF NOT EXISTS suppliers (
   name TEXT NOT NULL,
   phone TEXT,
   address TEXT,
+  due_days INTEGER NOT NULL DEFAULT 30, -- jatuh tempo pembayaran hutang (hari)
   created_at TEXT DEFAULT (datetime('now'))
 );
 

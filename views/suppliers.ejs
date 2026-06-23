@@ -11,17 +11,18 @@
       <div class="card p-4 overflow-x-auto">
         <table class="w-full data-table text-sm">
           <thead><tr class="border-b"><th class="text-left py-2">Nama</th><th class="text-left py-2">Telepon</th><th class="text-left py-2">Alamat</th>
-            <th class="text-right py-2">Total Pembelian</th><th class="text-right py-2">Hutang</th><th class="text-center py-2">Aksi</th></tr></thead>
+            <th class="text-right py-2">Jatuh Tempo</th><th class="text-right py-2">Total Pembelian</th><th class="text-right py-2">Hutang</th><th class="text-center py-2">Aksi</th></tr></thead>
           <tbody>
             <% suppliers.forEach(s => { %>
               <tr class="border-b">
                 <td class="py-2 font-medium"><%= s.name %></td>
                 <td class="py-2"><%= s.phone || '-' %></td>
                 <td class="py-2"><%= s.address || '-' %></td>
+                <td class="py-2 text-right"><%= s.due_days %> hari</td>
                 <td class="py-2 text-right">Rp <%= rupiah(s.total_pembelian) %></td>
                 <td class="py-2 text-right <%= s.outstanding > 0 ? 'text-amber-600 font-bold' : '' %>">Rp <%= rupiah(s.outstanding) %></td>
                 <td class="py-2 text-center">
-                  <button class="text-brand-600 font-semibold edit-btn" data-id="<%= s.id %>" data-name="<%= s.name %>" data-phone="<%= s.phone||'' %>" data-address="<%= s.address||'' %>">Edit</button>
+                  <button class="text-brand-600 font-semibold edit-btn" data-id="<%= s.id %>" data-name="<%= s.name %>" data-phone="<%= s.phone||'' %>" data-address="<%= s.address||'' %>" data-due="<%= s.due_days %>">Edit</button>
                   <form method="POST" action="/suppliers/<%= s.id %>/delete" class="inline" onsubmit="return confirm('Hapus supplier ini?')">
                     <button class="text-red-500 font-semibold ml-2">Hapus</button>
                   </form>
@@ -42,6 +43,10 @@
       <input name="name" placeholder="Nama" required class="w-full border rounded-lg px-3 py-2">
       <input name="phone" placeholder="Telepon" class="w-full border rounded-lg px-3 py-2">
       <input name="address" placeholder="Alamat" class="w-full border rounded-lg px-3 py-2">
+      <div>
+        <label class="text-xs text-slate-500">Jatuh tempo pembayaran (hari)</label>
+        <input name="due_days" type="number" min="1" value="30" required class="w-full border rounded-lg px-3 py-2 mt-1">
+      </div>
       <div class="flex justify-end gap-2"><button type="button" onclick="document.getElementById('addModal').classList.add('hidden')" class="px-4 py-2 rounded-lg border">Batal</button>
       <button class="px-4 py-2 rounded-lg bg-brand-600 text-white font-semibold">Simpan</button></div>
     </form>
@@ -55,6 +60,10 @@
       <input name="name" placeholder="Nama" required class="w-full border rounded-lg px-3 py-2">
       <input name="phone" placeholder="Telepon" class="w-full border rounded-lg px-3 py-2">
       <input name="address" placeholder="Alamat" class="w-full border rounded-lg px-3 py-2">
+      <div>
+        <label class="text-xs text-slate-500">Jatuh tempo pembayaran (hari)</label>
+        <input name="due_days" type="number" min="1" required class="w-full border rounded-lg px-3 py-2 mt-1">
+      </div>
       <div class="flex justify-end gap-2"><button type="button" onclick="document.getElementById('editModal').classList.add('hidden')" class="px-4 py-2 rounded-lg border">Batal</button>
       <button class="px-4 py-2 rounded-lg bg-brand-600 text-white font-semibold">Update</button></div>
     </form>
@@ -65,7 +74,7 @@ document.querySelectorAll('.edit-btn').forEach(btn => btn.addEventListener('clic
   const d = btn.dataset;
   const form = document.getElementById('editForm');
   form.action = '/suppliers/' + d.id + '/update';
-  form.name.value = d.name; form.phone.value = d.phone; form.address.value = d.address;
+  form.name.value = d.name; form.phone.value = d.phone; form.address.value = d.address; form.due_days.value = d.due;
   document.getElementById('editModal').classList.remove('hidden');
 }));
 </script>

@@ -15,14 +15,16 @@ router.get('/', (req, res) => {
 });
 
 router.post('/', (req, res) => {
-  const { name, phone, address } = req.body;
-  db.prepare('INSERT INTO suppliers (name, phone, address) VALUES (?,?,?)').run(name, phone || null, address || null);
+  const { name, phone, address, due_days } = req.body;
+  db.prepare('INSERT INTO suppliers (name, phone, address, due_days) VALUES (?,?,?,?)')
+    .run(name, phone || null, address || null, Number(due_days) || 30);
   res.redirect('/suppliers');
 });
 
 router.post('/:id/update', (req, res) => {
-  const { name, phone, address } = req.body;
-  db.prepare('UPDATE suppliers SET name=?, phone=?, address=? WHERE id=?').run(name, phone || null, address || null, req.params.id);
+  const { name, phone, address, due_days } = req.body;
+  db.prepare('UPDATE suppliers SET name=?, phone=?, address=?, due_days=? WHERE id=?')
+    .run(name, phone || null, address || null, Number(due_days) || 30, req.params.id);
   res.redirect('/suppliers');
 });
 

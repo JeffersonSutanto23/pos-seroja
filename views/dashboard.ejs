@@ -6,6 +6,27 @@
     <%- include('partials/topbar', { title: 'Dashboard', subtitle: 'Ringkasan performa toko hari ini' }) %>
     <div class="p-6 space-y-6">
 
+      <% if (overdueReceivables.length > 0 || overduePayables.length > 0) { %>
+      <div class="space-y-2">
+        <% if (overdueReceivables.length > 0) { %>
+          <div class="bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3 text-sm">
+            <strong>🔔 <%= overdueReceivables.length %> piutang jatuh tempo (≥ 2 bulan):</strong>
+            <%= overdueReceivables.slice(0,3).map(r => (r.customer_name || 'Umum') + ' (' + r.invoice_no + ')').join(', ') %>
+            <% if (overdueReceivables.length > 3) { %> dan <%= overdueReceivables.length - 3 %> lainnya<% } %>.
+            <a href="/debts" class="underline font-semibold">Lihat detail</a>
+          </div>
+        <% } %>
+        <% if (overduePayables.length > 0) { %>
+          <div class="bg-amber-50 border border-amber-200 text-amber-700 rounded-xl px-4 py-3 text-sm">
+            <strong>🔔 <%= overduePayables.length %> hutang ke supplier jatuh tempo:</strong>
+            <%= overduePayables.slice(0,3).map(p => p.supplier_name + ' (jatuh tempo ' + p.due_days + ' hari)').join(', ') %>
+            <% if (overduePayables.length > 3) { %> dan <%= overduePayables.length - 3 %> lainnya<% } %>.
+            <a href="/debts" class="underline font-semibold">Lihat detail</a>
+          </div>
+        <% } %>
+      </div>
+      <% } %>
+
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         <div class="card p-5">
           <p class="text-xs text-slate-500 font-medium uppercase">Penjualan Hari Ini</p>
@@ -26,6 +47,60 @@
         <div class="card p-5">
           <p class="text-xs text-slate-500 font-medium uppercase">Hutang ke Supplier</p>
           <p class="text-2xl font-extrabold text-amber-600 mt-1">Rp <%= rupiah(payables) %></p>
+        </div>
+      </div>
+
+      <div class="card p-5">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="font-bold text-slate-800">📈 Grafik Penjualan Bulanan</h3>
+          <form method="GET">
+            <select name="year" onchange="this.form.submit()" class="border border-slate-300 rounded-lg px-3 py-1.5 text-sm">
+              <% availableYears.forEach(y => { %>
+                <option value="<%= y %>" <%= y === selectedYear ? 'selected' : '' %>><%= y %></option>
+              <% }) %>
+            </select>
+          </form>
+        </div>
+        <canvas id="salesChart" height="90"></canvas>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="card p-5">
+          <h3 class="font-bold text-slate-800 mb-4">🏆 Produk Paling Populer</h3>
+          <% if (topProducts.length === 0) { %>
+            <p class="text-sm text-slate-400">Belum ada data penjualan.</p>
+          <% } else { %>
+            <table class="w-full data-table text-sm">
+              <thead><tr><th class="text-left py-2">Produk</th><th class="text-right py-2">Terjual</th></tr></thead>
+              <tbody>
+                <% topProducts.forEach(p => { %>
+                  <tr class="border-t">
+                    <td class="py-2"><%= p.name %></td>
+                    <td class="py-2 text-right font-semibold text-emerald-600"><%= p.qty_sold %> <%= p.unit %></td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          <% } %>
+        </div>
+
+        <div class="card p-5">
+          <h3 class="font-bold text-slate-800 mb-4">📉 Produk Kurang Populer</h3>
+          <% if (bottomProducts.length === 0) { %>
+            <p class="text-sm text-slate-400">Belum ada data produk.</p>
+          <% } else { %>
+            <table class="w-full data-table text-sm">
+              <thead><tr><th class="text-left py-2">Produk</th><th class="text-right py-2">Terjual</th></tr></thead>
+              <tbody>
+                <% bottomProducts.forEach(p => { %>
+                  <tr class="border-t">
+                    <td class="py-2"><%= p.name %></td>
+                    <td class="py-2 text-right font-semibold text-slate-400"><%= p.qty_sold %> <%= p.unit %></td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          <% } %>
         </div>
       </div>
 
@@ -70,5 +145,24 @@
     </div>
   </main>
 </div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<script>
+new Chart(document.getElementById('salesChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'],
+    datasets: [{
+      label: 'Penjualan <%= selectedYear %>',
+      data: <%- JSON.stringify(monthlySales) %>,
+      backgroundColor: '#0d9488',
+      borderRadius: 6,
+    }],
+  },
+  options: {
+    plugins: { legend: { display: false } },
+    scales: { y: { ticks: { callback: (v) => 'Rp ' + (v/1000) + 'rb' } } },
+  },
+});
+</script>
 </body>
 </html>

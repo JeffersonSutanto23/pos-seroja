@@ -21,6 +21,11 @@ if (!userColumns.includes('is_active')) {
   conn.exec('ALTER TABLE users ADD COLUMN is_active INTEGER NOT NULL DEFAULT 1');
 }
 
+const supplierColumns = conn.prepare("PRAGMA table_info(suppliers)").all().map(c => c.name);
+if (!supplierColumns.includes('due_days')) {
+  conn.exec('ALTER TABLE suppliers ADD COLUMN due_days INTEGER NOT NULL DEFAULT 30');
+}
+
 // Thin wrapper so the rest of the app can keep using the better-sqlite3-style API
 // (db.prepare(sql).get/all/run, db.exec, db.transaction).
 const db = {
