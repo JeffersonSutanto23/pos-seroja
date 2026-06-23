@@ -3,13 +3,15 @@
   "version": "1.0.0",
   "description": "POS Seroja Decor - Aplikasi Point of Sale untuk toko bahan bangunan",
   "main": "src/server.js",
+  "engines": {
+    "node": ">=22.5.0"
+  },
   "scripts": {
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
     "seed": "node src/db/seed.js"
   },
   "dependencies": {
-    "better-sqlite3": "^11.3.0",
     "body-parser": "^1.20.2",
     "dayjs": "^1.11.10",
     "ejs": "^3.1.9",
