@@ -30,7 +30,7 @@
                 </td>
                 <td class="py-2 text-center space-x-2">
                   <button class="text-brand-600 font-semibold edit-btn"
-                    data-id="<%= u.id %>" data-name="<%= u.full_name %>" data-role="<%= u.role_id||'' %>">Edit</button>
+                    data-id="<%= u.id %>" data-name="<%= u.full_name %>" data-username="<%= u.username %>" data-role="<%= u.role_id||'' %>">Edit</button>
                   <% if (u.id !== user.id) { %>
                     <form method="POST" action="/users/<%= u.id %>/toggle-active" class="inline">
                       <button class="text-amber-600 font-semibold"><%= u.is_active ? 'Nonaktifkan' : 'Aktifkan' %></button>
@@ -75,6 +75,7 @@
     <h3 class="font-bold text-lg mb-4">Edit Pengguna</h3>
     <form id="editForm" method="POST" class="space-y-3">
       <input name="full_name" placeholder="Nama Lengkap" required class="w-full border rounded-lg px-3 py-2">
+      <input name="username" placeholder="Username" required class="w-full border rounded-lg px-3 py-2">
       <select name="role_id" required class="w-full border rounded-lg px-3 py-2">
         <% roles.forEach(r => { %><option value="<%= r.id %>"><%= r.name %></option><% }) %>
       </select>
@@ -93,6 +94,7 @@ document.querySelectorAll('.edit-btn').forEach(btn => btn.addEventListener('clic
   const form = document.getElementById('editForm');
   form.action = '/users/' + d.id + '/update';
   form.full_name.value = d.name;
+  form.username.value = d.username;
   form.role_id.value = d.role;
   document.getElementById('editModal').classList.remove('hidden');
 }));

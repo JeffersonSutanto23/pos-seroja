@@ -30,13 +30,21 @@ router.post('/', (req, res) => {
 });
 
 router.post('/:id/update', (req, res) => {
-  const { full_name, role_id, password } = req.body;
-  if (password && password.trim()) {
-    db.prepare('UPDATE users SET full_name=?, role_id=?, password=? WHERE id=?')
-      .run(full_name.trim(), role_id || null, hash(password), req.params.id);
-  } else {
-    db.prepare('UPDATE users SET full_name=?, role_id=? WHERE id=?')
-      .run(full_name.trim(), role_id || null, req.params.id);
+  const { full_name, username, role_id, password } = req.body;
+  try {
+    if (password && password.trim()) {
+      db.prepare('UPDATE users SET full_name=?, username=?, role_id=?, password=? WHERE id=?')
+        .run(full_name.trim(), username.trim(), role_id || null, hash(password), req.params.id);
+    } else {
+      db.prepare('UPDATE users SET full_name=?, username=?, role_id=? WHERE id=?')
+        .run(full_name.trim(), username.trim(), role_id || null, req.params.id);
+    }
+  } catch (err) {
+    return res.status(400).send('Gagal mengubah pengguna: username mungkin sudah dipakai.');
+  }
+  if (req.session.user.id === Number(req.params.id)) {
+    req.session.user.username = username.trim();
+    req.session.user.full_name = full_name.trim();
   }
   res.redirect('/users');
 });
