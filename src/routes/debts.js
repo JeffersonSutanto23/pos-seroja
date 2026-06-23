@@ -20,7 +20,17 @@ router.get('/', (req, res) => {
     FROM purchases p LEFT JOIN suppliers s ON s.id = p.supplier_id
     WHERE p.status = 'belum_lunas' ORDER BY p.purchase_date ASC
   `).all();
-  res.render('debts', { title: 'Hutang / Piutang', receivables, payables, rupiah, dateID });
+  const receivablesPaid = db.prepare(`
+    SELECT s.*, c.name as customer_name
+    FROM sales s LEFT JOIN customers c ON c.id = s.customer_id
+    WHERE s.status = 'lunas' AND s.payment_type = 'credit' ORDER BY s.sale_date DESC LIMIT 50
+  `).all();
+  const payablesPaid = db.prepare(`
+    SELECT p.*, s.name as supplier_name
+    FROM purchases p LEFT JOIN suppliers s ON s.id = p.supplier_id
+    WHERE p.status = 'lunas' ORDER BY p.purchase_date DESC LIMIT 50
+  `).all();
+  res.render('debts', { title: 'Hutang / Piutang', receivables, payables, receivablesPaid, payablesPaid, rupiah, dateID });
 });
 
 router.post('/receivable/:id/pay', requireManage, (req, res) => {

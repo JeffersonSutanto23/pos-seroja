@@ -23,9 +23,28 @@
                 <td class="py-2 text-right text-red-500 font-bold">Rp <%= rupiah(r.remaining) %></td>
                 <td class="py-2 text-center">
                   <% if (hasPermission('debts.manage')) { %>
-                  <button class="text-brand-600 font-semibold pay-btn" data-url="/debts/receivable/<%= r.id %>/pay" data-max="<%= r.remaining %>">Bayar</button>
+                  <button class="text-brand-600 font-semibold pay-btn" data-url="/debts/receivable/<%= r.id %>/pay" data-max="<%= r.remaining %>">Lunas</button>
                   <% } else { %><span class="text-slate-300">-</span><% } %>
                 </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card p-4">
+        <h3 class="font-bold text-slate-800 mb-3">✅ Riwayat Piutang Lunas</h3>
+        <table class="w-full data-table text-sm">
+          <thead><tr class="border-b"><th class="text-left py-2">Invoice</th><th class="text-left py-2">Tanggal</th><th class="text-left py-2">Customer</th>
+            <th class="text-right py-2">Total</th></tr></thead>
+          <tbody>
+            <% if (receivablesPaid.length === 0) { %><tr><td colspan="4" class="py-6 text-center text-slate-400">Belum ada riwayat.</td></tr><% } %>
+            <% receivablesPaid.forEach(r => { %>
+              <tr class="border-b">
+                <td class="py-2"><%= r.invoice_no %></td>
+                <td class="py-2"><%= dateID(r.sale_date) %></td>
+                <td class="py-2 font-medium"><%= r.customer_name || '-' %></td>
+                <td class="py-2 text-right text-emerald-600 font-bold">Rp <%= rupiah(r.total) %></td>
               </tr>
             <% }) %>
           </tbody>
@@ -52,6 +71,25 @@
                   <button class="text-brand-600 font-semibold pay-btn" data-url="/debts/payable/<%= p.id %>/pay" data-max="<%= p.remaining %>">Bayar</button>
                   <% } else { %><span class="text-slate-300">-</span><% } %>
                 </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card p-4">
+        <h3 class="font-bold text-slate-800 mb-3">✅ Riwayat Hutang Lunas</h3>
+        <table class="w-full data-table text-sm">
+          <thead><tr class="border-b"><th class="text-left py-2">Invoice</th><th class="text-left py-2">Tanggal</th><th class="text-left py-2">Supplier</th>
+            <th class="text-right py-2">Total</th></tr></thead>
+          <tbody>
+            <% if (payablesPaid.length === 0) { %><tr><td colspan="4" class="py-6 text-center text-slate-400">Belum ada riwayat.</td></tr><% } %>
+            <% payablesPaid.forEach(p => { %>
+              <tr class="border-b">
+                <td class="py-2"><%= p.invoice_no || '-' %></td>
+                <td class="py-2"><%= dateID(p.purchase_date) %></td>
+                <td class="py-2 font-medium"><%= p.supplier_name %></td>
+                <td class="py-2 text-right text-emerald-600 font-bold">Rp <%= rupiah(p.total) %></td>
               </tr>
             <% }) %>
           </tbody>
