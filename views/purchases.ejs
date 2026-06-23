@@ -1,0 +1,116 @@
+<%- include('partials/layout-head', { title: 'Pembelian' }) %>
+<body class="bg-slate-50">
+<div class="flex">
+  <%- include('partials/sidebar') %>
+  <main class="flex-1 min-h-screen">
+    <%- include('partials/topbar', { title: 'Pembelian', subtitle: 'Input pembelian barang dari supplier' }) %>
+    <div class="p-6 space-y-4">
+      <div class="flex justify-end">
+        <button onclick="document.getElementById('addModal').classList.remove('hidden')" class="bg-brand-600 hover:bg-brand-700 text-white font-semibold px-4 py-2 rounded-lg">+ Input Pembelian</button>
+      </div>
+      <div class="card p-4 overflow-x-auto">
+        <table class="w-full data-table text-sm">
+          <thead><tr class="border-b"><th class="text-left py-2">Tanggal</th><th class="text-left py-2">Invoice</th><th class="text-left py-2">Supplier</th>
+            <th class="text-right py-2">Total</th><th class="text-right py-2">Dibayar</th><th class="text-center py-2">Status</th></tr></thead>
+          <tbody>
+            <% purchases.forEach(p => { %>
+              <tr class="border-b">
+                <td class="py-2"><%= dateID(p.purchase_date) %></td>
+                <td class="py-2"><%= p.invoice_no || '-' %></td>
+                <td class="py-2 font-medium"><%= p.supplier_name %></td>
+                <td class="py-2 text-right">Rp <%= rupiah(p.total) %></td>
+                <td class="py-2 text-right">Rp <%= rupiah(p.paid_amount) %></td>
+                <td class="py-2 text-center">
+                  <span class="px-2 py-1 rounded-full text-xs font-semibold <%= p.status === 'lunas' ? 'bg-brand-100 text-brand-700' : 'bg-amber-100 text-amber-700' %>"><%= p.status === 'lunas' ? 'Lunas' : 'Belum Lunas' %></span>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div id="addModal" class="hidden fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+  <div class="bg-white rounded-xl p-6 w-full max-w-2xl">
+    <h3 class="font-bold text-lg mb-4">Input Pembelian Baru</h3>
+    <div class="grid grid-cols-3 gap-3 mb-3">
+      <input id="pDate" type="date" class="border rounded-lg px-3 py-2">
+      <select id="pSupplier" class="border rounded-lg px-3 py-2 col-span-1">
+        <option value="">Pilih Supplier</option>
+        <% suppliers.forEach(s => { %><option value="<%= s.id %>"><%= s.name %></option><% }) %>
+      </select>
+      <input id="pInvoice" placeholder="No. Invoice (opsional)" class="border rounded-lg px-3 py-2">
+    </div>
+    <div class="flex gap-2 mb-3">
+      <select id="itemProduct" class="border rounded-lg px-3 py-2 flex-1">
+        <% products.forEach(p => { %><option value="<%= p.id %>" data-price="<%= p.cost_price %>"><%= p.name %></option><% }) %>
+      </select>
+      <input id="itemQty" type="number" min="1" value="1" placeholder="Qty" class="border rounded-lg px-3 py-2 w-24">
+      <input id="itemPrice" type="number" placeholder="Harga Beli" class="border rounded-lg px-3 py-2 w-36">
+      <button type="button" id="addItemBtn" class="bg-brand-600 text-white rounded-lg px-4 font-semibold">+</button>
+    </div>
+    <table class="w-full text-sm mb-3">
+      <thead><tr class="border-b text-slate-500"><th class="text-left py-1">Produk</th><th class="text-right py-1">Qty</th><th class="text-right py-1">Harga</th><th class="text-right py-1">Subtotal</th><th></th></tr></thead>
+      <tbody id="itemsBody"></tbody>
+    </table>
+    <div class="flex justify-between font-bold text-lg mb-3"><span>Total</span><span id="totalText">Rp 0</span></div>
+    <div class="mb-3">
+      <input id="paidAmount" type="number" min="0" value="0" placeholder="Jumlah dibayar" class="border rounded-lg px-3 py-2 w-full">
+    </div>
+    <div class="flex justify-end gap-2">
+      <button type="button" onclick="document.getElementById('addModal').classList.add('hidden')" class="px-4 py-2 rounded-lg border">Batal</button>
+      <button type="button" id="savePurchaseBtn" class="px-4 py-2 rounded-lg bg-accent-500 text-white font-semibold">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let items = [];
+document.getElementById('itemProduct').addEventListener('change', e => {
+  document.getElementById('itemPrice').value = e.target.selectedOptions[0].dataset.price;
+});
+document.getElementById('itemProduct').dispatchEvent(new Event('change'));
+
+document.getElementById('addItemBtn').addEventListener('click', () => {
+  const sel = document.getElementById('itemProduct');
+  const qty = Number(document.getElementById('itemQty').value);
+  const price = Number(document.getElementById('itemPrice').value);
+  if (!qty || !price) return;
+  items.push({ product_id: sel.value, name: sel.selectedOptions[0].textContent, qty, price });
+  renderItems();
+});
+
+function renderItems() {
+  const body = document.getElementById('itemsBody');
+  body.innerHTML = '';
+  let total = 0;
+  items.forEach((it, idx) => {
+    const sub = it.qty * it.price;
+    total += sub;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td class="py-1">${it.name}</td><td class="py-1 text-right">${it.qty}</td><td class="py-1 text-right">${it.price.toLocaleString('id-ID')}</td><td class="py-1 text-right">${sub.toLocaleString('id-ID')}</td>
+      <td class="py-1 text-right"><button data-idx="${idx}" class="text-red-500 remove-item">✕</button></td>`;
+    body.appendChild(tr);
+  });
+  document.getElementById('totalText').textContent = 'Rp ' + total.toLocaleString('id-ID');
+  body.querySelectorAll('.remove-item').forEach(b => b.addEventListener('click', e => { items.splice(e.target.dataset.idx,1); renderItems(); }));
+}
+
+document.getElementById('savePurchaseBtn').addEventListener('click', async () => {
+  if (!document.getElementById('pSupplier').value) return alert('Pilih supplier');
+  if (items.length === 0) return alert('Tambahkan minimal 1 item');
+  const payload = new URLSearchParams({
+    supplier_id: document.getElementById('pSupplier').value,
+    purchase_date: document.getElementById('pDate').value,
+    invoice_no: document.getElementById('pInvoice').value,
+    items: JSON.stringify(items.map(i => ({ product_id: i.product_id, qty: i.qty, price: i.price }))),
+    paid_amount: document.getElementById('paidAmount').value,
+  });
+  const res = await fetch('/purchases', { method: 'POST', headers: {'Content-Type':'application/x-www-form-urlencoded'}, body: payload });
+  if (res.redirected) window.location = res.url; else alert('Gagal menyimpan');
+});
+</script>
+</body>
+</html>

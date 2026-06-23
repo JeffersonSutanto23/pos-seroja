@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title><%= typeof title !== 'undefined' ? title + ' - Seroja Decor' : 'Seroja Decor POS' %></title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          brand: { 50:'#f0fdf6',100:'#dafbe8',200:'#b7f3d2',300:'#84e6b4',400:'#4ad28f',500:'#22b572',600:'#15945c',700:'#13744a',800:'#135c3d',900:'#114c33' },
+          accent: { 50:'#fff8ed',100:'#ffefd1',200:'#ffdca3',300:'#ffc16a',400:'#ff9f33',500:'#ff7f0a',600:'#f06300',700:'#c74a02',800:'#9e3a09',900:'#7f310c' }
+        },
+        fontFamily: { sans: ['Inter','ui-sans-serif','system-ui'] }
+      }
+    }
+  };
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/style.css">
+<style>body{font-family:'Inter',sans-serif;}</style>
+</head>

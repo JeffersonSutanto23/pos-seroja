@@ -1,0 +1,74 @@
+<%- include('partials/layout-head', { title: 'Dashboard' }) %>
+<body class="bg-slate-50">
+<div class="flex">
+  <%- include('partials/sidebar') %>
+  <main class="flex-1 min-h-screen">
+    <%- include('partials/topbar', { title: 'Dashboard', subtitle: 'Ringkasan performa toko hari ini' }) %>
+    <div class="p-6 space-y-6">
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div class="card p-5">
+          <p class="text-xs text-slate-500 font-medium uppercase">Penjualan Hari Ini</p>
+          <p class="text-2xl font-extrabold text-brand-700 mt-1">Rp <%= rupiah(todaySales) %></p>
+        </div>
+        <div class="card p-5">
+          <p class="text-xs text-slate-500 font-medium uppercase">Penjualan Bulan Ini</p>
+          <p class="text-2xl font-extrabold text-brand-700 mt-1">Rp <%= rupiah(monthSales) %></p>
+        </div>
+        <div class="card p-5">
+          <p class="text-xs text-slate-500 font-medium uppercase">Pembelian Bulan Ini</p>
+          <p class="text-2xl font-extrabold text-accent-600 mt-1">Rp <%= rupiah(monthPurchases) %></p>
+        </div>
+        <div class="card p-5">
+          <p class="text-xs text-slate-500 font-medium uppercase">Piutang (Belum Bayar)</p>
+          <p class="text-2xl font-extrabold text-red-500 mt-1">Rp <%= rupiah(receivables) %></p>
+        </div>
+        <div class="card p-5">
+          <p class="text-xs text-slate-500 font-medium uppercase">Hutang ke Supplier</p>
+          <p class="text-2xl font-extrabold text-amber-600 mt-1">Rp <%= rupiah(payables) %></p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="card p-5">
+          <h3 class="font-bold text-slate-800 mb-4">⚠️ Stok Menipis</h3>
+          <% if (lowStock.length === 0) { %>
+            <p class="text-sm text-slate-400">Semua stok aman.</p>
+          <% } else { %>
+            <table class="w-full data-table text-sm">
+              <thead><tr><th class="text-left py-2">Produk</th><th class="text-right py-2">Stok</th><th class="text-right py-2">Min</th></tr></thead>
+              <tbody>
+                <% lowStock.forEach(p => { %>
+                  <tr class="border-t">
+                    <td class="py-2"><%= p.name %></td>
+                    <td class="py-2 text-right font-semibold text-red-500"><%= p.stock %> <%= p.unit %></td>
+                    <td class="py-2 text-right text-slate-400"><%= p.min_stock %></td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          <% } %>
+        </div>
+
+        <div class="card p-5">
+          <h3 class="font-bold text-slate-800 mb-4">🧾 Transaksi Terbaru</h3>
+          <table class="w-full data-table text-sm">
+            <thead><tr><th class="text-left py-2">No. Invoice</th><th class="text-left py-2">Customer</th><th class="text-right py-2">Total</th></tr></thead>
+            <tbody>
+              <% recentSales.forEach(s => { %>
+                <tr class="border-t">
+                  <td class="py-2"><%= s.invoice_no %></td>
+                  <td class="py-2"><%= s.customer_name || 'Umum (Cash)' %></td>
+                  <td class="py-2 text-right font-semibold">Rp <%= rupiah(s.total) %></td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+</body>
+</html>

@@ -1,0 +1,30 @@
+<%- include('partials/layout-head', { title: 'Login' }) %>
+<body class="bg-gradient-to-br from-brand-700 via-brand-800 to-brand-900 min-h-screen flex items-center justify-center px-4">
+  <div class="w-full max-w-md">
+    <div class="text-center mb-8">
+      <div class="w-16 h-16 rounded-2xl bg-accent-500 mx-auto flex items-center justify-center text-2xl font-extrabold text-white shadow-xl mb-4">SD</div>
+      <h1 class="text-white text-2xl font-extrabold">Seroja Decor</h1>
+      <p class="text-brand-200 text-sm">Sistem Point of Sale Toko Bahan Bangunan</p>
+    </div>
+    <div class="card p-8">
+      <h2 class="text-lg font-bold text-slate-800 mb-1">Masuk</h2>
+      <p class="text-sm text-slate-500 mb-6">Silakan login untuk melanjutkan</p>
+      <% if (error) { %>
+        <div class="bg-red-50 text-red-600 text-sm rounded-lg px-4 py-2 mb-4 border border-red-200"><%= error %></div>
+      <% } %>
+      <form method="POST" action="/login" class="space-y-4">
+        <div>
+          <label class="text-sm font-medium text-slate-700">Username</label>
+          <input name="username" required class="mt-1 w-full border border-slate-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="admin">
+        </div>
+        <div>
+          <label class="text-sm font-medium text-slate-700">Password</label>
+          <input name="password" type="password" required class="mt-1 w-full border border-slate-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="••••••••">
+        </div>
+        <button class="w-full bg-accent-500 hover:bg-accent-600 text-white font-semibold rounded-lg py-2.5 transition shadow-md">Masuk</button>
+      </form>
+      <p class="text-xs text-slate-400 mt-5 text-center">Default: admin / admin123</p>
+    </div>
+  </div>
+</body>
+</html>

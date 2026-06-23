@@ -1,0 +1,120 @@
+<%- include('partials/layout-head', { title: 'Inventory' }) %>
+<body class="bg-slate-50">
+<div class="flex">
+  <%- include('partials/sidebar') %>
+  <main class="flex-1 min-h-screen">
+    <%- include('partials/topbar', { title: 'Inventory Stok', subtitle: 'Kelola data barang dan stok toko' }) %>
+    <div class="p-6 space-y-4">
+      <div class="flex justify-between items-center">
+        <input id="search" placeholder="Cari produk..." class="border border-slate-300 rounded-lg px-4 py-2 w-72 focus:outline-none focus:ring-2 focus:ring-brand-500">
+        <button onclick="document.getElementById('addModal').classList.remove('hidden')" class="bg-brand-600 hover:bg-brand-700 text-white font-semibold px-4 py-2 rounded-lg">+ Tambah Barang</button>
+      </div>
+
+      <div class="card p-4 overflow-x-auto">
+        <table class="w-full data-table text-sm" id="prodTable">
+          <thead><tr class="border-b">
+            <th class="text-left py-2">SKU</th><th class="text-left py-2">Nama</th><th class="text-left py-2">Kategori</th>
+            <th class="text-right py-2">Stok</th><th class="text-right py-2">Harga Beli</th><th class="text-right py-2">Harga Jual</th>
+            <th class="text-left py-2">Supplier</th><th class="text-center py-2">Aksi</th>
+          </tr></thead>
+          <tbody>
+            <% products.forEach(p => { %>
+              <tr class="border-b prod-row" data-name="<%= p.name.toLowerCase() %>">
+                <td class="py-2"><%= p.sku || '-' %></td>
+                <td class="py-2 font-medium"><%= p.name %></td>
+                <td class="py-2"><%= p.category_name || '-' %></td>
+                <td class="py-2 text-right <%= p.stock <= p.min_stock ? 'text-red-500 font-bold' : '' %>"><%= p.stock %> <%= p.unit %></td>
+                <td class="py-2 text-right">Rp <%= rupiah(p.cost_price) %></td>
+                <td class="py-2 text-right font-semibold">Rp <%= rupiah(p.sell_price) %></td>
+                <td class="py-2"><%= p.supplier_name || '-' %></td>
+                <td class="py-2 text-center">
+                  <button class="text-brand-600 font-semibold edit-btn"
+                    data-id="<%= p.id %>" data-sku="<%= p.sku||'' %>" data-name="<%= p.name %>" data-category="<%= p.category_id||'' %>"
+                    data-unit="<%= p.unit %>" data-cost="<%= p.cost_price %>" data-sell="<%= p.sell_price %>"
+                    data-stock="<%= p.stock %>" data-min="<%= p.min_stock %>" data-supplier="<%= p.supplier_id||'' %>">Edit</button>
+                  <form method="POST" action="/inventory/<%= p.id %>/delete" class="inline" onsubmit="return confirm('Hapus barang ini?')">
+                    <button class="text-red-500 font-semibold ml-2">Hapus</button>
+                  </form>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Add Modal -->
+<div id="addModal" class="hidden fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+  <div class="bg-white rounded-xl p-6 w-full max-w-lg">
+    <h3 class="font-bold text-lg mb-4">Tambah Barang</h3>
+    <form method="POST" action="/inventory" class="grid grid-cols-2 gap-3">
+      <input name="sku" placeholder="SKU" class="border rounded-lg px-3 py-2 col-span-1">
+      <input name="name" placeholder="Nama Barang" required class="border rounded-lg px-3 py-2 col-span-1">
+      <select name="category_id" class="border rounded-lg px-3 py-2 col-span-1">
+        <option value="">Kategori</option>
+        <% categories.forEach(c => { %><option value="<%= c.id %>"><%= c.name %></option><% }) %>
+      </select>
+      <select name="supplier_id" class="border rounded-lg px-3 py-2 col-span-1">
+        <option value="">Supplier</option>
+        <% suppliers.forEach(s => { %><option value="<%= s.id %>"><%= s.name %></option><% }) %>
+      </select>
+      <input name="unit" placeholder="Satuan (pcs/kg/sak)" class="border rounded-lg px-3 py-2 col-span-1">
+      <input name="cost_price" type="number" placeholder="Harga Beli" class="border rounded-lg px-3 py-2 col-span-1">
+      <input name="sell_price" type="number" placeholder="Harga Jual" required class="border rounded-lg px-3 py-2 col-span-1">
+      <input name="stock" type="number" placeholder="Stok Awal" class="border rounded-lg px-3 py-2 col-span-1">
+      <input name="min_stock" type="number" placeholder="Stok Minimum" class="border rounded-lg px-3 py-2 col-span-1">
+      <div class="col-span-2 flex justify-end gap-2 mt-2">
+        <button type="button" onclick="document.getElementById('addModal').classList.add('hidden')" class="px-4 py-2 rounded-lg border">Batal</button>
+        <button class="px-4 py-2 rounded-lg bg-brand-600 text-white font-semibold">Simpan</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Edit Modal -->
+<div id="editModal" class="hidden fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+  <div class="bg-white rounded-xl p-6 w-full max-w-lg">
+    <h3 class="font-bold text-lg mb-4">Edit Barang</h3>
+    <form id="editForm" method="POST" class="grid grid-cols-2 gap-3">
+      <input name="sku" placeholder="SKU" class="border rounded-lg px-3 py-2 col-span-1">
+      <input name="name" placeholder="Nama Barang" required class="border rounded-lg px-3 py-2 col-span-1">
+      <select name="category_id" class="border rounded-lg px-3 py-2 col-span-1">
+        <option value="">Kategori</option>
+        <% categories.forEach(c => { %><option value="<%= c.id %>"><%= c.name %></option><% }) %>
+      </select>
+      <select name="supplier_id" class="border rounded-lg px-3 py-2 col-span-1">
+        <option value="">Supplier</option>
+        <% suppliers.forEach(s => { %><option value="<%= s.id %>"><%= s.name %></option><% }) %>
+      </select>
+      <input name="unit" placeholder="Satuan" class="border rounded-lg px-3 py-2 col-span-1">
+      <input name="cost_price" type="number" placeholder="Harga Beli" class="border rounded-lg px-3 py-2 col-span-1">
+      <input name="sell_price" type="number" placeholder="Harga Jual" required class="border rounded-lg px-3 py-2 col-span-1">
+      <input name="stock" type="number" placeholder="Stok" class="border rounded-lg px-3 py-2 col-span-1">
+      <input name="min_stock" type="number" placeholder="Stok Minimum" class="border rounded-lg px-3 py-2 col-span-1">
+      <div class="col-span-2 flex justify-end gap-2 mt-2">
+        <button type="button" onclick="document.getElementById('editModal').classList.add('hidden')" class="px-4 py-2 rounded-lg border">Batal</button>
+        <button class="px-4 py-2 rounded-lg bg-brand-600 text-white font-semibold">Update</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+document.getElementById('search').addEventListener('input', e => {
+  const q = e.target.value.toLowerCase();
+  document.querySelectorAll('.prod-row').forEach(r => r.style.display = r.dataset.name.includes(q) ? '' : 'none');
+});
+document.querySelectorAll('.edit-btn').forEach(btn => btn.addEventListener('click', () => {
+  const d = btn.dataset;
+  const form = document.getElementById('editForm');
+  form.action = '/inventory/' + d.id + '/update';
+  form.sku.value = d.sku; form.name.value = d.name; form.category_id.value = d.category;
+  form.supplier_id.value = d.supplier; form.unit.value = d.unit; form.cost_price.value = d.cost;
+  form.sell_price.value = d.sell; form.stock.value = d.stock; form.min_stock.value = d.min;
+  document.getElementById('editModal').classList.remove('hidden');
+}));
+</script>
+</body>
+</html>

@@ -1,0 +1,62 @@
+<%- include('partials/layout-head', { title: 'Pembukuan Penjualan' }) %>
+<body class="bg-slate-50">
+<div class="flex">
+  <%- include('partials/sidebar') %>
+  <main class="flex-1 min-h-screen">
+    <%- include('partials/topbar', { title: 'Pembukuan Penjualan', subtitle: 'Rekap penjualan harian per bulan' }) %>
+    <div class="p-6 space-y-4">
+
+      <div class="flex items-center gap-2 overflow-x-auto pb-1">
+        <% MONTHS.forEach((m, idx) => { %>
+          <a href="/sales-book?year=<%= year %>&month=<%= idx+1 %>"
+             class="px-4 py-2 rounded-lg text-sm font-semibold whitespace-nowrap <%= (idx+1) === month ? 'bg-brand-600 text-white' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100' %>">
+             <%= m %>
+          </a>
+        <% }) %>
+        <select onchange="location.href='/sales-book?year='+this.value+'&month=<%= month %>'" class="ml-2 border rounded-lg px-3 py-2 text-sm">
+          <% [year-1, year, year+1].forEach(y => { %><option value="<%= y %>" <%= y===year?'selected':'' %>><%= y %></option><% }) %>
+        </select>
+      </div>
+
+      <div class="card overflow-hidden">
+        <table class="w-full text-sm">
+          <thead class="bg-slate-50">
+            <tr>
+              <th rowspan="2" class="border px-3 py-2 text-center align-middle">TANGGAL</th>
+              <th colspan="2" class="border px-3 py-2 text-center">SALE</th>
+              <th rowspan="2" class="border px-3 py-2 text-center align-middle">TOTAL</th>
+            </tr>
+            <tr><th class="border px-3 py-2 text-center">CASH</th><th class="border px-3 py-2 text-center">CREDIT</th></tr>
+          </thead>
+          <tbody>
+            <% days.forEach(d => { %>
+              <% if (d.isSunday && !d.data) { %>
+                <tr>
+                  <td class="border px-3 py-2 text-red-600 font-bold"><%= d.date.split('-').reverse().join('-') %></td>
+                  <td colspan="3" class="border px-3 py-2 text-center text-red-600 font-bold">HARI MINGGU</td>
+                </tr>
+              <% } else { %>
+                <tr class="<%= !d.data ? 'text-slate-300' : '' %>">
+                  <td class="border px-3 py-2"><%= d.date.split('-').reverse().join('-') %></td>
+                  <td class="border px-3 py-2 text-right"><%= d.data && d.data.cash ? rupiah(d.data.cash) : '' %></td>
+                  <td class="border px-3 py-2 text-right"><%= d.data && d.data.credit ? rupiah(d.data.credit) : '' %></td>
+                  <td class="border px-3 py-2 text-right font-semibold"><%= d.data && d.data.total ? rupiah(d.data.total) : '' %></td>
+                </tr>
+              <% } %>
+            <% }) %>
+          </tbody>
+          <tfoot>
+            <tr class="bg-brand-50 font-bold">
+              <td class="border px-3 py-2">TOTAL</td>
+              <td class="border px-3 py-2 text-right">Rp <%= rupiah(monthTotal.cash) %></td>
+              <td class="border px-3 py-2 text-right">Rp <%= rupiah(monthTotal.credit) %></td>
+              <td class="border px-3 py-2 text-right">Rp <%= rupiah(monthTotal.total) %></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+</body>
+</html>

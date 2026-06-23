@@ -1,0 +1,73 @@
+<%- include('partials/layout-head', { title: 'Customer' }) %>
+<body class="bg-slate-50">
+<div class="flex">
+  <%- include('partials/sidebar') %>
+  <main class="flex-1 min-h-screen">
+    <%- include('partials/topbar', { title: 'Data Customer', subtitle: 'Daftar pelanggan toko' }) %>
+    <div class="p-6 space-y-4">
+      <div class="flex justify-end">
+        <button onclick="document.getElementById('addModal').classList.remove('hidden')" class="bg-brand-600 hover:bg-brand-700 text-white font-semibold px-4 py-2 rounded-lg">+ Tambah Customer</button>
+      </div>
+      <div class="card p-4 overflow-x-auto">
+        <table class="w-full data-table text-sm">
+          <thead><tr class="border-b"><th class="text-left py-2">Nama</th><th class="text-left py-2">Telepon</th><th class="text-left py-2">Alamat</th>
+            <th class="text-right py-2">Total Belanja</th><th class="text-right py-2">Piutang</th><th class="text-center py-2">Aksi</th></tr></thead>
+          <tbody>
+            <% customers.forEach(c => { %>
+              <tr class="border-b">
+                <td class="py-2 font-medium"><%= c.name %></td>
+                <td class="py-2"><%= c.phone || '-' %></td>
+                <td class="py-2"><%= c.address || '-' %></td>
+                <td class="py-2 text-right">Rp <%= rupiah(c.total_belanja) %></td>
+                <td class="py-2 text-right <%= c.outstanding > 0 ? 'text-red-500 font-bold' : '' %>">Rp <%= rupiah(c.outstanding) %></td>
+                <td class="py-2 text-center">
+                  <button class="text-brand-600 font-semibold edit-btn" data-id="<%= c.id %>" data-name="<%= c.name %>" data-phone="<%= c.phone||'' %>" data-address="<%= c.address||'' %>">Edit</button>
+                  <form method="POST" action="/customers/<%= c.id %>/delete" class="inline" onsubmit="return confirm('Hapus customer ini?')">
+                    <button class="text-red-500 font-semibold ml-2">Hapus</button>
+                  </form>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div id="addModal" class="hidden fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+  <div class="bg-white rounded-xl p-6 w-full max-w-md">
+    <h3 class="font-bold text-lg mb-4">Tambah Customer</h3>
+    <form method="POST" action="/customers" class="space-y-3">
+      <input name="name" placeholder="Nama" required class="w-full border rounded-lg px-3 py-2">
+      <input name="phone" placeholder="Telepon" class="w-full border rounded-lg px-3 py-2">
+      <input name="address" placeholder="Alamat" class="w-full border rounded-lg px-3 py-2">
+      <div class="flex justify-end gap-2"><button type="button" onclick="document.getElementById('addModal').classList.add('hidden')" class="px-4 py-2 rounded-lg border">Batal</button>
+      <button class="px-4 py-2 rounded-lg bg-brand-600 text-white font-semibold">Simpan</button></div>
+    </form>
+  </div>
+</div>
+
+<div id="editModal" class="hidden fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+  <div class="bg-white rounded-xl p-6 w-full max-w-md">
+    <h3 class="font-bold text-lg mb-4">Edit Customer</h3>
+    <form id="editForm" method="POST" class="space-y-3">
+      <input name="name" placeholder="Nama" required class="w-full border rounded-lg px-3 py-2">
+      <input name="phone" placeholder="Telepon" class="w-full border rounded-lg px-3 py-2">
+      <input name="address" placeholder="Alamat" class="w-full border rounded-lg px-3 py-2">
+      <div class="flex justify-end gap-2"><button type="button" onclick="document.getElementById('editModal').classList.add('hidden')" class="px-4 py-2 rounded-lg border">Batal</button>
+      <button class="px-4 py-2 rounded-lg bg-brand-600 text-white font-semibold">Update</button></div>
+    </form>
+  </div>
+</div>
+<script>
+document.querySelectorAll('.edit-btn').forEach(btn => btn.addEventListener('click', () => {
+  const d = btn.dataset;
+  const form = document.getElementById('editForm');
+  form.action = '/customers/' + d.id + '/update';
+  form.name.value = d.name; form.phone.value = d.phone; form.address.value = d.address;
+  document.getElementById('editModal').classList.remove('hidden');
+}));
+</script>
+</body>
+</html>

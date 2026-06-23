@@ -1,0 +1,87 @@
+<%- include('partials/layout-head', { title: 'Hutang / Piutang' }) %>
+<body class="bg-slate-50">
+<div class="flex">
+  <%- include('partials/sidebar') %>
+  <main class="flex-1 min-h-screen">
+    <%- include('partials/topbar', { title: 'Hutang / Piutang', subtitle: 'Pantau tagihan customer & hutang ke supplier' }) %>
+    <div class="p-6 space-y-6">
+
+      <div class="card p-4">
+        <h3 class="font-bold text-slate-800 mb-3">💸 Piutang Customer (Belum Lunas)</h3>
+        <table class="w-full data-table text-sm">
+          <thead><tr class="border-b"><th class="text-left py-2">Invoice</th><th class="text-left py-2">Tanggal</th><th class="text-left py-2">Customer</th>
+            <th class="text-right py-2">Total</th><th class="text-right py-2">Sudah Bayar</th><th class="text-right py-2">Sisa</th><th class="text-center py-2">Aksi</th></tr></thead>
+          <tbody>
+            <% if (receivables.length === 0) { %><tr><td colspan="7" class="py-6 text-center text-slate-400">Tidak ada piutang.</td></tr><% } %>
+            <% receivables.forEach(r => { %>
+              <tr class="border-b">
+                <td class="py-2"><%= r.invoice_no %></td>
+                <td class="py-2"><%= dateID(r.sale_date) %></td>
+                <td class="py-2 font-medium"><%= r.customer_name || '-' %></td>
+                <td class="py-2 text-right">Rp <%= rupiah(r.total) %></td>
+                <td class="py-2 text-right">Rp <%= rupiah(r.paid_amount) %></td>
+                <td class="py-2 text-right text-red-500 font-bold">Rp <%= rupiah(r.remaining) %></td>
+                <td class="py-2 text-center">
+                  <button class="text-brand-600 font-semibold pay-btn" data-url="/debts/receivable/<%= r.id %>/pay" data-max="<%= r.remaining %>">Bayar</button>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card p-4">
+        <h3 class="font-bold text-slate-800 mb-3">📦 Hutang ke Supplier (Belum Lunas)</h3>
+        <table class="w-full data-table text-sm">
+          <thead><tr class="border-b"><th class="text-left py-2">Invoice</th><th class="text-left py-2">Tanggal</th><th class="text-left py-2">Supplier</th>
+            <th class="text-right py-2">Total</th><th class="text-right py-2">Sudah Bayar</th><th class="text-right py-2">Sisa</th><th class="text-center py-2">Aksi</th></tr></thead>
+          <tbody>
+            <% if (payables.length === 0) { %><tr><td colspan="7" class="py-6 text-center text-slate-400">Tidak ada hutang.</td></tr><% } %>
+            <% payables.forEach(p => { %>
+              <tr class="border-b">
+                <td class="py-2"><%= p.invoice_no || '-' %></td>
+                <td class="py-2"><%= dateID(p.purchase_date) %></td>
+                <td class="py-2 font-medium"><%= p.supplier_name %></td>
+                <td class="py-2 text-right">Rp <%= rupiah(p.total) %></td>
+                <td class="py-2 text-right">Rp <%= rupiah(p.paid_amount) %></td>
+                <td class="py-2 text-right text-amber-600 font-bold">Rp <%= rupiah(p.remaining) %></td>
+                <td class="py-2 text-center">
+                  <button class="text-brand-600 font-semibold pay-btn" data-url="/debts/payable/<%= p.id %>/pay" data-max="<%= p.remaining %>">Bayar</button>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<div id="payModal" class="hidden fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+  <div class="bg-white rounded-xl p-6 w-full max-w-sm">
+    <h3 class="font-bold text-lg mb-4">Catat Pembayaran</h3>
+    <form id="payForm" method="POST" class="space-y-3">
+      <input id="payAmount" name="amount" type="number" min="1" placeholder="Jumlah bayar" required class="w-full border rounded-lg px-3 py-2">
+      <select name="payment_method" class="w-full border rounded-lg px-3 py-2">
+        <option value="cash">Tunai</option>
+        <option value="transfer_bca">Transfer BCA</option>
+        <option value="qris">QRIS</option>
+      </select>
+      <div class="flex justify-end gap-2">
+        <button type="button" onclick="document.getElementById('payModal').classList.add('hidden')" class="px-4 py-2 rounded-lg border">Batal</button>
+        <button class="px-4 py-2 rounded-lg bg-brand-600 text-white font-semibold">Simpan</button>
+      </div>
+    </form>
+  </div>
+</div>
+<script>
+document.querySelectorAll('.pay-btn').forEach(btn => btn.addEventListener('click', () => {
+  document.getElementById('payForm').action = btn.dataset.url;
+  document.getElementById('payAmount').max = btn.dataset.max;
+  document.getElementById('payAmount').value = btn.dataset.max;
+  document.getElementById('payModal').classList.remove('hidden');
+}));
+</script>
+</body>
+</html>
