@@ -1,12 +1,37 @@
 -- POS Seroja Decor Database Schema
 
+CREATE TABLE IF NOT EXISTS roles (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT UNIQUE NOT NULL,
+  description TEXT,
+  is_system INTEGER NOT NULL DEFAULT 0, -- system roles cannot be deleted
+  created_at TEXT DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS permissions (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  key TEXT UNIQUE NOT NULL,   -- e.g. 'inventory.manage'
+  label TEXT NOT NULL,
+  group_name TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS role_permissions (
+  role_id INTEGER NOT NULL,
+  permission_id INTEGER NOT NULL,
+  PRIMARY KEY (role_id, permission_id),
+  FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE CASCADE,
+  FOREIGN KEY (permission_id) REFERENCES permissions(id) ON DELETE CASCADE
+);
+
 CREATE TABLE IF NOT EXISTS users (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   username TEXT UNIQUE NOT NULL,
   password TEXT NOT NULL,
   full_name TEXT NOT NULL,
-  role TEXT NOT NULL DEFAULT 'kasir', -- admin | kasir
-  created_at TEXT DEFAULT (datetime('now'))
+  role_id INTEGER,
+  is_active INTEGER NOT NULL DEFAULT 1,
+  created_at TEXT DEFAULT (datetime('now')),
+  FOREIGN KEY (role_id) REFERENCES roles(id)
 );
 
 CREATE TABLE IF NOT EXISTS categories (

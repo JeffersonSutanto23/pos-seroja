@@ -6,7 +6,9 @@
     <%- include('partials/topbar', { title: 'Pembelian', subtitle: 'Input pembelian barang dari supplier' }) %>
     <div class="p-6 space-y-4">
       <div class="flex justify-end">
+        <% if (hasPermission('purchases.manage')) { %>
         <button onclick="document.getElementById('addModal').classList.remove('hidden')" class="bg-brand-600 hover:bg-brand-700 text-white font-semibold px-4 py-2 rounded-lg">+ Input Pembelian</button>
+        <% } %>
       </div>
       <div class="card p-4 overflow-x-auto">
         <table class="w-full data-table text-sm">

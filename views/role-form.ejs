@@ -1,0 +1,62 @@
+<%- include('partials/layout-head', { title: title }) %>
+<body class="bg-slate-50">
+<div class="flex">
+  <%- include('partials/sidebar') %>
+  <main class="flex-1 min-h-screen">
+    <%- include('partials/topbar', { title: title, subtitle: 'Centang hak akses yang diizinkan untuk role ini' }) %>
+    <div class="p-6 max-w-4xl">
+      <form method="POST" action="<%= role ? '/roles/' + role.id + '/update' : '/roles' %>" class="card p-6 space-y-5">
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="text-sm font-semibold text-slate-700">Nama Role</label>
+            <input name="name" value="<%= role ? role.name : '' %>" required <%= role && role.is_system ? 'readonly' : '' %>
+              class="w-full border border-slate-300 rounded-lg px-3 py-2 mt-1 <%= role && role.is_system ? 'bg-slate-100' : '' %>">
+          </div>
+          <div>
+            <label class="text-sm font-semibold text-slate-700">Deskripsi</label>
+            <input name="description" value="<%= role ? (role.description||'') : '' %>" class="w-full border border-slate-300 rounded-lg px-3 py-2 mt-1">
+          </div>
+        </div>
+
+        <div>
+          <label class="text-sm font-semibold text-slate-700 block mb-2">Hak Akses (Permissions)</label>
+          <div class="space-y-4">
+            <% Object.keys(groupedPermissions).forEach(group => { %>
+              <div class="border border-slate-200 rounded-xl p-4">
+                <div class="flex items-center justify-between mb-2">
+                  <h4 class="font-bold text-sm text-slate-700"><%= group %></h4>
+                  <label class="text-xs text-brand-600 font-semibold cursor-pointer">
+                    <input type="checkbox" class="group-toggle mr-1" data-group="<%= group %>"> Pilih semua
+                  </label>
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-2">
+                  <% groupedPermissions[group].forEach(p => { %>
+                    <label class="flex items-center gap-2 text-sm bg-slate-50 rounded-lg px-3 py-2 cursor-pointer">
+                      <input type="checkbox" name="permissions" value="<%= p.key %>" class="perm-checkbox" data-group="<%= group %>"
+                        <%= rolePermissionKeys.includes(p.key) ? 'checked' : '' %>>
+                      <%= p.label %>
+                    </label>
+                  <% }) %>
+                </div>
+              </div>
+            <% }) %>
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-2">
+          <a href="/roles" class="px-4 py-2 rounded-lg border">Batal</a>
+          <button class="px-5 py-2 rounded-lg bg-brand-600 text-white font-semibold">Simpan Role</button>
+        </div>
+      </form>
+    </div>
+  </main>
+</div>
+<script>
+document.querySelectorAll('.group-toggle').forEach(toggle => {
+  toggle.addEventListener('change', () => {
+    document.querySelectorAll('.perm-checkbox[data-group="' + toggle.dataset.group + '"]').forEach(cb => cb.checked = toggle.checked);
+  });
+});
+</script>
+</body>
+</html>

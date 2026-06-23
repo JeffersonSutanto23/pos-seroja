@@ -22,7 +22,9 @@
                 <td class="py-2 text-right">Rp <%= rupiah(r.paid_amount) %></td>
                 <td class="py-2 text-right text-red-500 font-bold">Rp <%= rupiah(r.remaining) %></td>
                 <td class="py-2 text-center">
+                  <% if (hasPermission('debts.manage')) { %>
                   <button class="text-brand-600 font-semibold pay-btn" data-url="/debts/receivable/<%= r.id %>/pay" data-max="<%= r.remaining %>">Bayar</button>
+                  <% } else { %><span class="text-slate-300">-</span><% } %>
                 </td>
               </tr>
             <% }) %>
@@ -46,7 +48,9 @@
                 <td class="py-2 text-right">Rp <%= rupiah(p.paid_amount) %></td>
                 <td class="py-2 text-right text-amber-600 font-bold">Rp <%= rupiah(p.remaining) %></td>
                 <td class="py-2 text-center">
+                  <% if (hasPermission('debts.manage')) { %>
                   <button class="text-brand-600 font-semibold pay-btn" data-url="/debts/payable/<%= p.id %>/pay" data-max="<%= p.remaining %>">Bayar</button>
+                  <% } else { %><span class="text-slate-300">-</span><% } %>
                 </td>
               </tr>
             <% }) %>

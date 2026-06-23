@@ -4,6 +4,11 @@ const { rupiah } = require('../utils/format');
 
 const router = express.Router();
 
+function requireManage(req, res, next) {
+  if (req.session.user.permissions.includes('inventory.manage')) return next();
+  res.status(403).render('403', { title: 'Akses Ditolak' });
+}
+
 router.get('/', (req, res) => {
   const products = db.prepare(`
     SELECT p.*, c.name as category_name, s.name as supplier_name
@@ -17,7 +22,7 @@ router.get('/', (req, res) => {
   res.render('inventory', { title: 'Inventory Stok', products, categories, suppliers, rupiah });
 });
 
-router.post('/', (req, res) => {
+router.post('/', requireManage, (req, res) => {
   const { sku, name, category_id, unit, cost_price, sell_price, stock, min_stock, supplier_id } = req.body;
   db.prepare(`
     INSERT INTO products (sku, name, category_id, unit, cost_price, sell_price, stock, min_stock, supplier_id)
@@ -26,7 +31,7 @@ router.post('/', (req, res) => {
   res.redirect('/inventory');
 });
 
-router.post('/:id/update', (req, res) => {
+router.post('/:id/update', requireManage, (req, res) => {
   const { name, category_id, unit, cost_price, sell_price, stock, min_stock, supplier_id, sku } = req.body;
   db.prepare(`
     UPDATE products SET sku=?, name=?, category_id=?, unit=?, cost_price=?, sell_price=?, stock=?, min_stock=?, supplier_id=?
@@ -35,7 +40,7 @@ router.post('/:id/update', (req, res) => {
   res.redirect('/inventory');
 });
 
-router.post('/:id/delete', (req, res) => {
+router.post('/:id/delete', requireManage, (req, res) => {
   db.prepare('UPDATE products SET is_active = 0 WHERE id = ?').run(req.params.id);
   res.redirect('/inventory');
 });

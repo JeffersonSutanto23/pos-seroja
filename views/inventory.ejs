@@ -7,7 +7,9 @@
     <div class="p-6 space-y-4">
       <div class="flex justify-between items-center">
         <input id="search" placeholder="Cari produk..." class="border border-slate-300 rounded-lg px-4 py-2 w-72 focus:outline-none focus:ring-2 focus:ring-brand-500">
+        <% if (hasPermission('inventory.manage')) { %>
         <button onclick="document.getElementById('addModal').classList.remove('hidden')" class="bg-brand-600 hover:bg-brand-700 text-white font-semibold px-4 py-2 rounded-lg">+ Tambah Barang</button>
+        <% } %>
       </div>
 
       <div class="card p-4 overflow-x-auto">
@@ -28,6 +30,7 @@
                 <td class="py-2 text-right font-semibold">Rp <%= rupiah(p.sell_price) %></td>
                 <td class="py-2"><%= p.supplier_name || '-' %></td>
                 <td class="py-2 text-center">
+                  <% if (hasPermission('inventory.manage')) { %>
                   <button class="text-brand-600 font-semibold edit-btn"
                     data-id="<%= p.id %>" data-sku="<%= p.sku||'' %>" data-name="<%= p.name %>" data-category="<%= p.category_id||'' %>"
                     data-unit="<%= p.unit %>" data-cost="<%= p.cost_price %>" data-sell="<%= p.sell_price %>"
@@ -35,6 +38,9 @@
                   <form method="POST" action="/inventory/<%= p.id %>/delete" class="inline" onsubmit="return confirm('Hapus barang ini?')">
                     <button class="text-red-500 font-semibold ml-2">Hapus</button>
                   </form>
+                  <% } else { %>
+                  <span class="text-slate-300">-</span>
+                  <% } %>
                 </td>
               </tr>
             <% }) %>

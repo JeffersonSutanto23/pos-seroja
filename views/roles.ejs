@@ -1,0 +1,40 @@
+<%- include('partials/layout-head', { title: 'Role & Hak Akses' }) %>
+<body class="bg-slate-50">
+<div class="flex">
+  <%- include('partials/sidebar') %>
+  <main class="flex-1 min-h-screen">
+    <%- include('partials/topbar', { title: 'Role & Hak Akses', subtitle: 'Atur peran dan izin akses tiap modul, seperti Shield' }) %>
+    <div class="p-6 space-y-4">
+      <div class="flex justify-end">
+        <a href="/roles/new" class="bg-brand-600 hover:bg-brand-700 text-white font-semibold px-4 py-2 rounded-lg">+ Tambah Role</a>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <% roles.forEach(r => { %>
+          <div class="card p-5">
+            <div class="flex items-start justify-between">
+              <div>
+                <h3 class="font-bold text-slate-800"><%= r.name %></h3>
+                <p class="text-xs text-slate-400 mt-1"><%= r.description || 'Tidak ada deskripsi' %></p>
+              </div>
+              <% if (r.is_system) { %>
+                <span class="text-[10px] bg-slate-100 text-slate-500 px-2 py-1 rounded-full font-semibold">SISTEM</span>
+              <% } %>
+            </div>
+            <p class="text-sm text-slate-500 mt-3"><%= r.user_count %> pengguna</p>
+            <div class="flex gap-2 mt-4">
+              <a href="/roles/<%= r.id %>/edit" class="flex-1 text-center text-sm font-semibold border border-brand-600 text-brand-600 rounded-lg py-2 hover:bg-brand-50">Kelola Izin</a>
+              <% if (!r.is_system) { %>
+                <form method="POST" action="/roles/<%= r.id %>/delete" onsubmit="return confirm('Hapus role ini?')">
+                  <button class="text-sm font-semibold border border-red-300 text-red-500 rounded-lg py-2 px-3 hover:bg-red-50">Hapus</button>
+                </form>
+              <% } %>
+            </div>
+          </div>
+        <% }) %>
+      </div>
+    </div>
+  </main>
+</div>
+</body>
+</html>

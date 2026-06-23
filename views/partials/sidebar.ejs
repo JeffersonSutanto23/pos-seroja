@@ -8,23 +8,39 @@
   </div>
   <nav class="flex-1 overflow-y-auto py-4 px-3 space-y-1 text-sm">
     <% const nav = [
-      { href: '/', label: 'Dashboard', icon: '🏠' },
-      { href: '/pos', label: 'Kasir (POS)', icon: '🧾' },
-      { href: '/inventory', label: 'Inventory Stok', icon: '📦' },
-      { href: '/purchases', label: 'Pembelian', icon: '🛒' },
-      { href: '/debts', label: 'Hutang / Piutang', icon: '💳' },
-      { href: '/customers', label: 'Customer', icon: '👥' },
-      { href: '/suppliers', label: 'Supplier', icon: '🚚' },
-      { href: '/sales-book', label: 'Pembukuan Penjualan', icon: '📈' },
-      { href: '/purchases-book', label: 'Pembukuan Pembelian', icon: '📉' },
+      { href: '/', label: 'Dashboard', icon: '🏠', perm: 'dashboard.view' },
+      { href: '/pos', label: 'Kasir (POS)', icon: '🧾', perm: 'pos.access' },
+      { href: '/inventory', label: 'Inventory Stok', icon: '📦', perm: 'inventory.view' },
+      { href: '/purchases', label: 'Pembelian', icon: '🛒', perm: 'purchases.view' },
+      { href: '/debts', label: 'Hutang / Piutang', icon: '💳', perm: 'debts.view' },
+      { href: '/customers', label: 'Customer', icon: '👥', perm: 'customers.manage' },
+      { href: '/suppliers', label: 'Supplier', icon: '🚚', perm: 'suppliers.manage' },
+      { href: '/sales-book', label: 'Pembukuan Penjualan', icon: '📈', perm: 'sales_book.view' },
+      { href: '/purchases-book', label: 'Pembukuan Pembelian', icon: '📉', perm: 'purchases_book.view' },
     ]; %>
     <% nav.forEach(item => { %>
+      <% if (hasPermission(item.perm)) { %>
       <a href="<%= item.href %>"
         class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition <%= currentPath === item.href ? 'bg-accent-500 text-white shadow-md' : 'text-brand-100 hover:bg-white/10' %>">
         <span class="text-base"><%= item.icon %></span>
         <span class="font-medium"><%= item.label %></span>
       </a>
+      <% } %>
     <% }) %>
+
+    <% if (hasPermission('users.manage') || hasPermission('roles.manage')) { %>
+      <div class="pt-3 pb-1 px-3 text-[10px] uppercase tracking-wider text-brand-300 font-bold">Administrasi</div>
+      <% if (hasPermission('users.manage')) { %>
+        <a href="/users" class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition <%= currentPath === '/users' ? 'bg-accent-500 text-white shadow-md' : 'text-brand-100 hover:bg-white/10' %>">
+          <span class="text-base">🧑‍💼</span><span class="font-medium">Pengguna</span>
+        </a>
+      <% } %>
+      <% if (hasPermission('roles.manage')) { %>
+        <a href="/roles" class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition <%= currentPath.startsWith('/roles') ? 'bg-accent-500 text-white shadow-md' : 'text-brand-100 hover:bg-white/10' %>">
+          <span class="text-base">🛡️</span><span class="font-medium">Role & Hak Akses</span>
+        </a>
+      <% } %>
+    <% } %>
   </nav>
   <div class="px-4 py-4 border-t border-white/10">
     <div class="flex items-center gap-2 mb-3">
@@ -33,7 +49,7 @@
       </div>
       <div class="text-xs">
         <div class="font-semibold"><%= user ? user.full_name : '' %></div>
-        <div class="text-brand-300 capitalize"><%= user ? user.role : '' %></div>
+        <div class="text-brand-300"><%= user ? user.role_name : '' %></div>
       </div>
     </div>
     <a href="/logout" class="block text-center text-xs bg-white/10 hover:bg-white/20 rounded-lg py-2 transition">Keluar</a>

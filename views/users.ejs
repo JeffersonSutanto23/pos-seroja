@@ -1,0 +1,101 @@
+<%- include('partials/layout-head', { title: 'Pengguna' }) %>
+<body class="bg-slate-50">
+<div class="flex">
+  <%- include('partials/sidebar') %>
+  <main class="flex-1 min-h-screen">
+    <%- include('partials/topbar', { title: 'Kelola Pengguna', subtitle: 'Akun staff yang dapat login ke sistem' }) %>
+    <div class="p-6 space-y-4">
+      <div class="flex justify-end">
+        <button onclick="document.getElementById('addModal').classList.remove('hidden')" class="bg-brand-600 hover:bg-brand-700 text-white font-semibold px-4 py-2 rounded-lg">+ Tambah Pengguna</button>
+      </div>
+
+      <div class="card p-4 overflow-x-auto">
+        <table class="w-full data-table text-sm">
+          <thead><tr class="border-b">
+            <th class="text-left py-2">Nama</th><th class="text-left py-2">Username</th><th class="text-left py-2">Role</th>
+            <th class="text-center py-2">Status</th><th class="text-center py-2">Aksi</th>
+          </tr></thead>
+          <tbody>
+            <% users.forEach(u => { %>
+              <tr class="border-b">
+                <td class="py-2 font-medium"><%= u.full_name %></td>
+                <td class="py-2"><%= u.username %></td>
+                <td class="py-2">
+                  <span class="px-2 py-1 rounded-full text-xs font-semibold bg-brand-100 text-brand-700"><%= u.role_name || 'Tanpa Role' %></span>
+                </td>
+                <td class="py-2 text-center">
+                  <span class="px-2 py-1 rounded-full text-xs font-semibold <%= u.is_active ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-500' %>">
+                    <%= u.is_active ? 'Aktif' : 'Nonaktif' %>
+                  </span>
+                </td>
+                <td class="py-2 text-center space-x-2">
+                  <button class="text-brand-600 font-semibold edit-btn"
+                    data-id="<%= u.id %>" data-name="<%= u.full_name %>" data-role="<%= u.role_id||'' %>">Edit</button>
+                  <% if (u.id !== user.id) { %>
+                    <form method="POST" action="/users/<%= u.id %>/toggle-active" class="inline">
+                      <button class="text-amber-600 font-semibold"><%= u.is_active ? 'Nonaktifkan' : 'Aktifkan' %></button>
+                    </form>
+                    <form method="POST" action="/users/<%= u.id %>/delete" class="inline" onsubmit="return confirm('Hapus pengguna ini?')">
+                      <button class="text-red-500 font-semibold">Hapus</button>
+                    </form>
+                  <% } else { %>
+                    <span class="text-slate-300 text-xs">(Anda)</span>
+                  <% } %>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div id="addModal" class="hidden fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+  <div class="bg-white rounded-xl p-6 w-full max-w-md">
+    <h3 class="font-bold text-lg mb-4">Tambah Pengguna</h3>
+    <form method="POST" action="/users" class="space-y-3">
+      <input name="full_name" placeholder="Nama Lengkap" required class="w-full border rounded-lg px-3 py-2">
+      <input name="username" placeholder="Username" required class="w-full border rounded-lg px-3 py-2">
+      <input name="password" type="password" placeholder="Password" required class="w-full border rounded-lg px-3 py-2">
+      <select name="role_id" required class="w-full border rounded-lg px-3 py-2">
+        <option value="">Pilih Role</option>
+        <% roles.forEach(r => { %><option value="<%= r.id %>"><%= r.name %></option><% }) %>
+      </select>
+      <div class="flex justify-end gap-2">
+        <button type="button" onclick="document.getElementById('addModal').classList.add('hidden')" class="px-4 py-2 rounded-lg border">Batal</button>
+        <button class="px-4 py-2 rounded-lg bg-brand-600 text-white font-semibold">Simpan</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div id="editModal" class="hidden fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+  <div class="bg-white rounded-xl p-6 w-full max-w-md">
+    <h3 class="font-bold text-lg mb-4">Edit Pengguna</h3>
+    <form id="editForm" method="POST" class="space-y-3">
+      <input name="full_name" placeholder="Nama Lengkap" required class="w-full border rounded-lg px-3 py-2">
+      <select name="role_id" required class="w-full border rounded-lg px-3 py-2">
+        <% roles.forEach(r => { %><option value="<%= r.id %>"><%= r.name %></option><% }) %>
+      </select>
+      <input name="password" type="password" placeholder="Password baru (kosongkan jika tidak diubah)" class="w-full border rounded-lg px-3 py-2">
+      <div class="flex justify-end gap-2">
+        <button type="button" onclick="document.getElementById('editModal').classList.add('hidden')" class="px-4 py-2 rounded-lg border">Batal</button>
+        <button class="px-4 py-2 rounded-lg bg-brand-600 text-white font-semibold">Update</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+document.querySelectorAll('.edit-btn').forEach(btn => btn.addEventListener('click', () => {
+  const d = btn.dataset;
+  const form = document.getElementById('editForm');
+  form.action = '/users/' + d.id + '/update';
+  form.full_name.value = d.name;
+  form.role_id.value = d.role;
+  document.getElementById('editModal').classList.remove('hidden');
+}));
+</script>
+</body>
+</html>

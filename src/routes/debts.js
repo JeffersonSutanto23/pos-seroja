@@ -4,6 +4,11 @@ const { rupiah, dateID } = require('../utils/format');
 
 const router = express.Router();
 
+function requireManage(req, res, next) {
+  if (req.session.user.permissions.includes('debts.manage')) return next();
+  res.status(403).render('403', { title: 'Akses Ditolak' });
+}
+
 router.get('/', (req, res) => {
   const receivables = db.prepare(`
     SELECT s.*, c.name as customer_name, (s.total - s.paid_amount) as remaining
@@ -18,7 +23,7 @@ router.get('/', (req, res) => {
   res.render('debts', { title: 'Hutang / Piutang', receivables, payables, rupiah, dateID });
 });
 
-router.post('/receivable/:id/pay', (req, res) => {
+router.post('/receivable/:id/pay', requireManage, (req, res) => {
   const amount = Number(req.body.amount) || 0;
   const sale = db.prepare('SELECT * FROM sales WHERE id = ?').get(req.params.id);
   if (sale && amount > 0) {
@@ -30,7 +35,7 @@ router.post('/receivable/:id/pay', (req, res) => {
   res.redirect('/debts');
 });
 
-router.post('/payable/:id/pay', (req, res) => {
+router.post('/payable/:id/pay', requireManage, (req, res) => {
   const amount = Number(req.body.amount) || 0;
   const purchase = db.prepare('SELECT * FROM purchases WHERE id = ?').get(req.params.id);
   if (purchase && amount > 0) {

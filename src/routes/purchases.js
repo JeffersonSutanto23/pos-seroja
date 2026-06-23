@@ -16,7 +16,12 @@ router.get('/', (req, res) => {
   res.render('purchases', { title: 'Pembelian', purchases, suppliers, products, rupiah, dateID });
 });
 
-router.post('/', (req, res) => {
+router.post('/', (req, res, next) => {
+  if (!req.session.user.permissions.includes('purchases.manage')) {
+    return res.status(403).render('403', { title: 'Akses Ditolak' });
+  }
+  next();
+}, (req, res) => {
   try {
     const { supplier_id, purchase_date, invoice_no, items, paid_amount, notes } = req.body;
     const cart = JSON.parse(items || '[]');
